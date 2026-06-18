@@ -1,7 +1,8 @@
 /** @format */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import {
   Container,
   Grid,
@@ -22,7 +23,7 @@ import {
   fetchVacanciesFailure,
 } from "../store/slices/vacanciesSlice";
 import { setCurrentPage, setTotalPages } from "../store/slices/paginationSlice";
-import { setSearch } from "../store/slices/filtersSlice";
+import { setSearch, setCity, setSkills } from "../store/slices/filtersSlice";
 import { fetchJobs } from "../api/jobsApi";
 import CitySelect from "../components/CitySelect";
 import SkillsInput from "../components/SkillsInput";
@@ -39,17 +40,46 @@ export default function VacanciesPage() {
     (state: RootState) => state.pagination,
   );
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const [localSearch, setLocalSearch] = useState(filters.search);
   const debouncedSearch = useDebounce(localSearch, 500);
+  const isFirstRender = useRef(true);
 
+  // 1. Чтение параметров из URL при монтировании (только один раз)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      const search = searchParams.get("search") || "";
+      const city = searchParams.get("city") || "";
+      const skillsParam = searchParams.get("skills") || "";
+      const skills = skillsParam ? skillsParam.split(",") : [];
+      dispatch(setSearch(search));
+      dispatch(setCity(city));
+      dispatch(setSkills(skills));
+      setLocalSearch(search);
+      isFirstRender.current = false;
+    }
+  }, [searchParams, dispatch]);
+
+  // 2. Синхронизация фильтров с URL при их изменении
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.search) params.set("search", filters.search);
+    if (filters.city) params.set("city", filters.city);
+    if (filters.skills.length) params.set("skills", filters.skills.join(","));
+    setSearchParams(params, { replace: true });
+  }, [filters.search, filters.city, filters.skills, setSearchParams]);
+
+  // 3. Debounce для поиска
   useEffect(() => {
     dispatch(setSearch(debouncedSearch));
   }, [debouncedSearch, dispatch]);
 
+  // 4. Сброс страницы при изменении фильтров
   useEffect(() => {
     dispatch(setCurrentPage(1));
   }, [filters.search, filters.city, filters.skills, dispatch]);
 
+  // 5. Загрузка вакансий
   useEffect(() => {
     const loadVacancies = async () => {
       dispatch(fetchVacanciesStart());
@@ -159,9 +189,8 @@ export default function VacanciesPage() {
         </Flex>
 
         <Grid gutter='xl'>
-          {/* ЛЕВАЯ КОЛОНКА — два отдельных блока */}
+          {/* Левая колонка — сайдбар */}
           <Grid.Col span={{ base: 12, md: 3 }}>
-            {/* Блок 1: Ключевые навыки */}
             <Paper
               shadow='none'
               p='md'
@@ -176,8 +205,6 @@ export default function VacanciesPage() {
               </Title>
               <SkillsInput />
             </Paper>
-
-            {/* Блок 2: Город */}
             <Paper
               shadow='none'
               p='md'
@@ -187,7 +214,7 @@ export default function VacanciesPage() {
             </Paper>
           </Grid.Col>
 
-          {/* Правая колонка */}
+          {/* Правая колонка — список вакансий */}
           <Grid.Col span={{ base: 12, md: 9 }}>
             <VacanciesList />
             <Space h='xl' />

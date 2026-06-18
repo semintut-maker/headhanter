@@ -1,7 +1,7 @@
 /** @format */
 
 import axios from "axios";
-import type { ApiResponse, Vacancy } from "../types/vacancy";
+import type { ApiResponse, SingleJobResponse, Vacancy } from "../types/vacancy";
 
 const API_BASE = "https://kata-jobs.onrender.com/api/jobs";
 
@@ -16,7 +16,6 @@ export interface FetchJobsParams {
 export interface FetchJobsResponse {
   items: Vacancy[];
   total: number;
-  totalPages: number; // добавляем это поле
 }
 
 export async function fetchJobs({
@@ -27,20 +26,19 @@ export async function fetchJobs({
   limit = 10,
 }: FetchJobsParams): Promise<FetchJobsResponse> {
   const params: Record<string, string | number> = {
-    page: page,
-    limit: limit,
+    page,
+    limit,
   };
-
   if (search) params.search = search;
   if (city) params.city = city;
-  if (skills.length > 0) params.skills = skills.join(",");
+  if (skills.length) params.skills = skills.join(",");
 
   const response = await axios.get<ApiResponse>(API_BASE, { params });
   const { jobs, pagination } = response.data;
+  return { items: jobs, total: pagination.totalItems };
+}
 
-  return {
-    items: jobs,
-    total: pagination.totalItems,
-    totalPages: pagination.totalPages, // используем поле из ответа
-  };
+export async function fetchJobById(id: number): Promise<Vacancy> {
+  const response = await axios.get<SingleJobResponse>(`${API_BASE}/${id}`);
+  return response.data.job;
 }

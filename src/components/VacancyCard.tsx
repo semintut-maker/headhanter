@@ -1,6 +1,7 @@
 /** @format */
 
 import { Card, Text, Group, Badge, Button } from "@mantine/core";
+import { Link } from "react-router-dom";
 import type { Vacancy } from "../types/vacancy";
 import { useMantineTheme } from "@mantine/core";
 
@@ -48,11 +49,9 @@ export default function VacancyCard({ vacancy }: Props) {
     }
   };
 
-  // Форматируем зарплату: если приходит число, показываем как "100 000 ₽"
-  // Если строка с дефисом, показываем как есть (диапазон)
   const formatSalary = (salary: string | number) => {
     if (typeof salary === "string" && salary.includes("–")) {
-      return salary; // уже диапазон
+      return salary;
     }
     const num = typeof salary === "string" ? parseInt(salary, 10) : salary;
     if (isNaN(num)) return salary;
@@ -69,7 +68,7 @@ export default function VacancyCard({ vacancy }: Props) {
       withBorder
       style={{
         backgroundColor: theme.white,
-        borderColor: theme.other?.ultraLight,
+        borderColor: theme.other?.ultraLight || "#e9ecef",
         boxShadow: "none",
         transition: "box-shadow 0.2s",
       }}
@@ -79,21 +78,19 @@ export default function VacancyCard({ vacancy }: Props) {
       onMouseLeave={(e) => {
         e.currentTarget.style.boxShadow = "none";
       }}>
-      <div style={{ padding: "16px" }}>
-        {/* Название */}
+      <div style={{ padding: "24px" }}>
         <Text
           component='h3'
           fw={600}
           style={{
             fontSize: "20px",
-            lineHeight: "10px",
+            lineHeight: "24px",
             color: theme.other?.primary || "#364FC7",
-            marginBottom: "10px",
+            marginBottom: "16px",
           }}>
           {vacancy.name}
         </Text>
 
-        {/* Зарплата и опыт в одной строке */}
         <Group
           gap='16px'
           mb='16px'
@@ -120,7 +117,6 @@ export default function VacancyCard({ vacancy }: Props) {
           )}
         </Group>
 
-        {/* Компания */}
         <Text
           fw={400}
           style={{
@@ -132,17 +128,16 @@ export default function VacancyCard({ vacancy }: Props) {
           {vacancy.company_name || "Компания не указана"}
         </Text>
 
-        {/* Бейдж режима работы */}
         {badgeText && (
           <Badge
-            radius='sm'
-            size='md'
+            radius='md'
+            size='xs'
             style={{
               ...badgeStyle,
-              fontWeight: 600,
-              fontSize: "8px",
-              lineHeight: "20px",
-              padding: "0 8px",
+              fontWeight: 400,
+              fontSize: "10px",
+              lineHeight: "24px",
+              padding: "0 12px",
               height: "20px",
               marginBottom: "8px",
             }}>
@@ -150,7 +145,6 @@ export default function VacancyCard({ vacancy }: Props) {
           </Badge>
         )}
 
-        {/* Город */}
         <Text
           fw={400}
           style={{
@@ -162,41 +156,24 @@ export default function VacancyCard({ vacancy }: Props) {
           {vacancy.city || "Город не указан"}
         </Text>
 
-        {/* Две кнопки */}
-        <Group gap='12px'>
-          <Button
-            variant='filled'
-            radius='md'
-            style={{
-              backgroundColor: theme.other?.black1 || "#0F0F10",
-              color: theme.white,
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = theme.other?.gray;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = theme.other?.black1;
-            }}>
-            Смотреть вакансию
-          </Button>
-          <Button
-            variant='filled'
-            radius='md'
-            style={{
-              backgroundColor: theme.other?.lightGray || "rgba(15,15,16,0.3)",
-              color: theme.white,
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = theme.other?.gray;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = theme.other?.lightGray;
-            }}>
-            Откликнуться
-          </Button>
-        </Group>
+        {/* Кнопка Смотреть вакансию — чёрная всегда */}
+        <Button
+          component={Link}
+          to={`/vacancies/${vacancy.id}`}
+          variant='filled'
+          style={{
+            backgroundColor: "#0F0F10",
+            color: "#FFFFFF",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#333333";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#0F0F10";
+          }}>
+          Смотреть вакансию
+        </Button>
       </div>
     </Card>
   );

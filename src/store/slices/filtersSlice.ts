@@ -1,7 +1,7 @@
 /** @format */
 
-import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 
 interface FiltersState {
   search: string;
@@ -34,9 +34,12 @@ const filtersSlice = createSlice({
     removeSkill(state, action: PayloadAction<string>) {
       state.skills = state.skills.filter((s) => s !== action.payload);
     },
+    setSkills(state, action: PayloadAction<string[]>) {
+      state.skills = action.payload;
+    },
   },
 });
 
-export const { setSearch, setCity, addSkill, removeSkill } =
+export const { setSearch, setCity, addSkill, removeSkill, setSkills } =
   filtersSlice.actions;
 export default filtersSlice.reducer;
